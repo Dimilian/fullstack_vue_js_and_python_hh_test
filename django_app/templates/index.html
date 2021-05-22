@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+<div id="app">
+    <v-app>
+        <v-main>
+            <v-container>
+                <v-skeleton-loader
+                        v-if="products_loading"
+                        type="table-thead, table-tbody"
+                ></v-skeleton-loader>
+                <v-data-table
+                        v-else
+                        :expanded.sync="expanded"
+                        :headers="products_table_headers"
+                        :items="products"
+                        item-key="id"
+                        :items-per-page="15"
+                        class="elevation-1"
+                        :single-expand="singleExpand"
+                >
+                    <template v-slot:item.desc={item}>
+                        <v-btn
+                                @click="expandRow(item)"
+                                small
+                                color="primary"
+                                dark
+                        >
+                            Подробнее
+                        </v-btn>
+                    </template>
+                    <template v-slot:expanded-item="{ headers, item }">
+                        <td :colspan="products_table_headers.length" class="pa-3">
+                            <div class="mb-4">
+                                <div class="font-weight-bold">Описание</div>
+                                <div>
+                                [[item.description]]
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="font-weight-bold">Параметры</div>
+                                <div>
+                                    <v-chip
+                                            v-for="param in item.params"
+                                            class="ma-2"
+                                            label
+                                    >
+                                        [[param]]
+                                    </v-chip>
+                                </div>
+                            </div>
+                        </td>
+                    </template>
+                </v-data-table>
+            </v-container>
+        </v-main>
+    </v-app>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script>
+    axios.defaults.xsrfCookieName = 'csrftoken';
+    axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+    axios.defaults.withCredentials = true;
+
+    Vue.prototype.$http = axios;
+
+    new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        vuetify: new Vuetify(),
+        data () {
+            return {
+                fetch_category_url: '/api/get_products',
+                products_loading: false,
+                products: [],
+                singleExpand: false,
+                expanded:[],
+                products_table_headers: [
+                    {
+                        text: 'Товар',
+                        align: 'start',
+                        sortable: true,
+                        value: 'name',
+                        width:'1%',
+                    },
+                    {text: 'Артикул', value: 'article', width:'1%'},
+                    {text: 'Бренд', value: 'brand', width:'1%'},
+                    {text: 'Цена', value: 'actual_price', width:'1%'},
+                    {text: 'Состав', value: 'composition', width:'1%'},
+                    {text: 'Описание и параметры', value: 'desc', width:'1%'},
+                ],
+            }
+        },
+        methods: {
+            expandRow(item) {
+                this.expanded = item === this.expanded[0] ? [] : [item]
+            },
+            fetch_products () {
+                this.products_loading = true
+                this.$http.get(this.fetch_category_url)
+                    .then(r => {
+                        this.products = r.data
+                    })
+                    .catch((r => {
+                        console.log(r.data)
+                    }))
+                    .finally(() => {
+                        this.products_loading = false
+                    })
+            }
+        },
+        beforeMount () {
+           this.fetch_products()
+        }
+    })
+</script>
+</body>
+</html>
