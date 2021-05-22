@@ -19,7 +19,9 @@ python manage.py migrate
 ```python
 manage.py run_parser [category_url]
 ```
-`category_url` - Полный адрес категории на wb, напр. `https://www.wildberries.ru/catalog/muzhchinam/odezhda/kombinezony` Команда 
+`category_url` - Полный адрес категории на wb, напр. `https://www.wildberries.ru/catalog/muzhchinam/odezhda/kombinezony` 
+
+Команда стирает все данные модели Product и заполняет их заново.
 
 ### Frontend
 Vue и vuetify напрямую подключены в `templates/index.html` для экономии времени  
